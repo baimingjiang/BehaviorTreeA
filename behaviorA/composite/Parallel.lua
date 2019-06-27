@@ -26,12 +26,10 @@ function Parallel:onProcess(ctx)
             ret = self._children[i]:exec(ctx)
         end
 
-        if ret == bt.SUCCESS or ret == bt.FAILURE then
+        if ret == bt.SUCCESS then
             successNum = successNum + 1
-            break
         elseif ret == bt.FAILURE then
             failureNum = failureNum + 1
-            break
         end
     end
 
