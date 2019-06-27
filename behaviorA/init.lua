@@ -30,7 +30,7 @@ bt.BaseBehavior     = __load('behaviorA.BaseBehavior')
 bt.Composite        = __load('behaviorA.composite.Composite')
 bt.Selector         = __load('behaviorA.composite.Selector')
 bt.Sequence         = __load('behaviorA.composite.Sequence')
-
+bt.Parallel         = __load('behaviorA.composite.Parallel')
 
 bt.Decorator        = __load('behaviorA.decorate.Decorator')
 bt.Delay            = __load('behaviorA.decorate.Delay')

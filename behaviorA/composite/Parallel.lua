@@ -10,8 +10,6 @@ local Parallel = class('Parallel', bt.Composite)
 
 function Parallel:onEnter(ctx)
     Parallel.super.onEnter(self, ctx)
-
-    self._curIndex = 1
 end
 
 function Parallel:onExit(ctx)
@@ -19,7 +17,27 @@ function Parallel:onExit(ctx)
 end
 
 function Parallel:onProcess(ctx)
+    local failureNum = 0
+    local successNum = 0
+    for i = 1, #self._children do
+        local child = self._children[1]
+        local ret = child:getState()
+        if ret == bt.RUNNING or ret == bt.NONE then
+            ret = self._children[i]:exec(ctx)
+        end
 
+        if ret == bt.SUCCESS or ret == bt.FAILURE then
+            successNum = successNum + 1
+            break
+        elseif ret == bt.FAILURE then
+            failureNum = failureNum + 1
+            break
+        end
+    end
+
+    if (successNum + failureNum) == #self._children then
+        self._state = (failureNum == 0) and bt.SUCCESS or bt.FAILURE
+    end
 end
 
 return Parallel

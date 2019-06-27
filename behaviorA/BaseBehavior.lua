@@ -10,7 +10,8 @@ local BaseBehavior = class('BaseBehavior')
 
 function BaseBehavior:ctor(conf)
 
-    self._id = conf.id
+    self._id        = conf.id
+    self._desc      = conf.desc or ""
 
     self._conf      = conf
 
@@ -27,6 +28,12 @@ function BaseBehavior:ctor(conf)
 end
 
 function BaseBehavior:exec(ctx)
+    if self._state == bt.SUCCESS 
+        or self._state == bt.FAILURE
+        or self._state == bt.ERROR then
+        return
+    end
+
     self._tick = self._tick + 1
 
     if not self._isRunning then
@@ -46,6 +53,16 @@ function BaseBehavior:isRunning()
     return self._isRunning
 end
 
+function BaseBehavior:getState()
+    return self._state
+end
+
+function BaseBehavior:reset()
+    self._state = bt.NONE
+    self._isRunning = false
+    self._tick = 0
+end
+
 --- private method ---
 function BaseBehavior:__run(ctx)
     self._state = bt.RUNNING
@@ -56,7 +73,7 @@ function BaseBehavior:__enter(ctx)
     self._tick = 0
     self._isRunning = true
 
-    bt.log(string.format( "node: %s, id:%s, entering", self._conf.name, self._id))
+    bt.log(string.format( "node: %s, id:%s, entering, desc: %s", self._conf.name, self._id, self._desc))
 
     ctx:pushBehavior(self)
     self:onEnter(ctx)
