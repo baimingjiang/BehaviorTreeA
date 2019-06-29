@@ -16,4 +16,12 @@ function Decorator:ctor(conf)
     self._child = nil
 end
 
+function Decorator:abort(ctx)
+    if self._child then
+        self._child:abort(ctx)
+    end
+
+    return Decorator.super.abort(self, ctx)
+end
+
 return Decorator

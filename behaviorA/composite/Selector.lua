@@ -26,7 +26,7 @@ function Selector:onProcess(ctx)
         local ret = self._children[i]:exec(ctx)
 
         if ret == bt.SUCCESS then
-            self._state = bt.SUCCESS
+            self:setResult(bt.SUCCESS)
             break
         end
         
@@ -39,7 +39,7 @@ function Selector:onProcess(ctx)
 
     if self._state == bt.RUNNING 
     and self._curIndex > #self._children then
-        self._state = bt.FAILURE
+        self:setResult(bt.FAILURE)
     end
 end
 

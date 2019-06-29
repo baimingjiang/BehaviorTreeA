@@ -15,7 +15,7 @@ function Action:ctor(conf)
 end
 
 function Action:onProcess(ctx)
-    self._state = bt.SUCCESS
+
 end
 
 return Action

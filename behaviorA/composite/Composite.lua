@@ -23,4 +23,12 @@ function Composite:fillChildren(nodeList)
     end
 end
 
+function Composite:abort(ctx)
+    for i,v in ipairs(self._children) do
+        v:abort(ctx)
+    end
+    
+    return Composite.super.abort(self, ctx)
+end
+
 return Composite

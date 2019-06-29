@@ -20,7 +20,7 @@ function Parallel:onProcess(ctx)
     local failureNum = 0
     local successNum = 0
     for i = 1, #self._children do
-        local child = self._children[1]
+        local child = self._children[i]
         local ret = child:getState()
         if ret == bt.RUNNING or ret == bt.NONE then
             ret = self._children[i]:exec(ctx)
@@ -34,7 +34,7 @@ function Parallel:onProcess(ctx)
     end
 
     if (successNum + failureNum) == #self._children then
-        self._state = (failureNum == 0) and bt.SUCCESS or bt.FAILURE
+        self:setResult((failureNum == 0) and bt.SUCCESS or bt.FAILURE)
     end
 end
 

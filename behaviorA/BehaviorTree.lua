@@ -8,13 +8,17 @@
 
 local BehaviorTree = class('BehaviorTree')
 
-function BehaviorTree:ctor(ctx)
-    self._context       = ctx
+function BehaviorTree:ctor()
+    self._context = nil
     
+    self._id    = bt.uuid()
+    self._root  = nil
+    self._task  = nil
+
     self._isRunning     = false
 
-    self._root          = nil
-    self._task = nil
+    self._nodeList = {}
+    self._nodeCount = 0
 end
 
 function BehaviorTree:load(treeData, customNodeMap)
@@ -40,15 +44,20 @@ function BehaviorTree:load(treeData, customNodeMap)
     self._root = allNodes[treeData.root]
 end
 
-function BehaviorTree:start(callback)
-    self._isRunning = true
-
+function BehaviorTree:start(context, callback)
+    self._context = context
     self._callback = callback
 
-    self:tick(0)
+    self._isRunning = true
+    self:__run()    
+end
 
+function BehaviorTree:stop()
     if self._isRunning then
-        self._task = cc.Director:getInstance():getScheduler():scheduleScriptFunc(handler(self, self.tick), 1/30.0, false)
+        self._isRunning = false
+
+        local ret = self._root:abort(self._context)
+        self:__finish(ret)
     end
 end
 
@@ -60,15 +69,42 @@ function BehaviorTree:tick(dt)
     local ret = self._root:exec(self._context)
     
     if ret ~= bt.RUNNING then
-        self._isRunning = false
+        self:__finish(ret)
+    end
+end
 
-        if self._callback then
-            self._callback(ret)
-        end
+function BehaviorTree:__run()
+    self:tick(0)
 
-        if self._task then
-            cc.Director:getInstance():getScheduler():unscheduleScriptEntry(self._task)
-            self._task = nil
+    if self._isRunning then
+        self._task = cc.Director:getInstance():getScheduler():scheduleScriptFunc(handler(self, self.tick), 1/30.0, false)
+    end
+end
+
+function BehaviorTree:__finish(ret)
+    self._isRunning = false
+
+    if self._callback then
+        self._callback(ret)
+    end
+
+    if self._task then
+        cc.Director:getInstance():getScheduler():unscheduleScriptEntry(self._task)
+        self._task = nil
+    end
+end
+
+function BehaviorTree:enterBehavior(node)
+    table.insert(self._nodeList, node)
+    self._nodeCount = self._nodeCount + 1
+end
+
+function BehaviorTree:exitBehavior(node)
+    for i = #self._nodeList, 1 do
+        local tmp = self._nodeList[1]
+        if tmp == node then
+            table.remove(self._nodeList, i)
+            break;
         end
     end
 end

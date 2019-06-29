@@ -20,7 +20,8 @@ function BaseBehavior:ctor(conf)
 
     self._type      = nil
 
-    self._state = bt.NONE
+    self._state         = bt.NONE
+    self._cacheState    = nil
 
     self._tick = 0
 
@@ -29,9 +30,10 @@ end
 
 function BaseBehavior:exec(ctx)
     if self._state == bt.SUCCESS 
-        or self._state == bt.FAILURE
-        or self._state == bt.ERROR then
-        return
+    or self._state == bt.FAILURE
+    or self._state == bt.ERROR
+    or self._state == bt.ABORT then
+        return self._state
     end
 
     self._tick = self._tick + 1
@@ -45,6 +47,15 @@ function BaseBehavior:exec(ctx)
     if self._state == bt.SUCCESS or self._state == bt.FAILURE then
         self:__exit(ctx)
     end
+
+    return self._state
+end
+
+function BaseBehavior:abort(ctx)
+    if self._isRunning then
+        self:__exit(ctx)
+    end
+    self._state = bt.ABORT
 
     return self._state
 end
@@ -63,10 +74,16 @@ function BaseBehavior:reset()
     self._tick = 0
 end
 
+function BaseBehavior:setResult(state)
+    self._cacheState = state
+end
+
 --- private method ---
 function BaseBehavior:__run(ctx)
     self._state = bt.RUNNING
+
     self:onProcess(ctx)
+    self:onHandleState(ctx)
 end
 
 function BaseBehavior:__enter(ctx)
@@ -75,7 +92,7 @@ function BaseBehavior:__enter(ctx)
 
     bt.log(string.format( "node: %s, id:%s, entering, desc: %s", self._conf.name, self._id, self._desc))
 
-    ctx:pushBehavior(self)
+    ctx:getTree():enterBehavior(self)
     self:onEnter(ctx)
 end
 
@@ -83,7 +100,7 @@ function BaseBehavior:__exit(ctx)
     self._isRunning = false
     
     self:onExit(ctx)
-    ctx:popBehavior(self)
+    ctx:getTree():exitBehavior(self)
 
     bt.log(string.format( "node: %s, id:%s, tick:%d, exit", self._conf.name, self._id, self._tick))
 end
@@ -99,8 +116,15 @@ function BaseBehavior:onExit(ctx)
     
 end
 
+function BaseBehavior:onHandleState(ctx)
+    if self._cacheState then
+        self._state = self._cacheState
+        self._cacheState = nil
+    end
+end
+
 function BaseBehavior:onProcess(ctx)
-    self._state = bt.SUCCESS
+    
 end
 
 return BaseBehavior

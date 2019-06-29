@@ -8,35 +8,33 @@
 
 local BTContext = class("BtContext")
 
-function BTContext:ctor()
-    
-    self._tree = nil
-    self._blackboard = nil
+function BTContext:ctor(tree, blackboard)
+    assert(tree, "The tree cannot be nil.")
+
+    self._tree          = tree
+    self._blackboard    = blackboard
 
     self._nodeList = {}
     self._nodeCount = 0
+
+    self._modules = {}
 end
 
--- 
-function BTContext:pushBehavior(node)
-    self._nodeCount = self._nodeCount + 1
-    table.insert(self._nodeList, node)
+function BTContext:getTree()
+    return self._tree
 end
 
-function BTContext:popBehavior(node)
-    if self._nodeCount > 0 then
-        table.remove(self._nodeList, self._nodeCount)
-        self._nodeCount = self._nodeCount - 1
-    end
+function BTContext:getBlackboard()
+    return self._blackboard
 end
 
-function BTContext:getCurBehavior()
-    local ret = nil
-    if self._nodeCount > 0 then
-        ret = self._nodeList[self._nodeCount]
-    end
+function BTContext:set(name, module)
+    assert(self._modules[name] == nil, "duplication module, name is " .. name)
+    self._modules[name] = module
+end
 
-    return ret
+function BTContext:get(name)
+    return self._modules[name]
 end
 
 return BTContext

@@ -34,7 +34,7 @@ function Sequence:onProcess(ctx)
     
     if self._state == bt.RUNNING 
     and self._curIndex > #self._children then
-        self._state = bt.SUCCESS
+        self:setResult(bt.SUCCESS)
     end
 end
 

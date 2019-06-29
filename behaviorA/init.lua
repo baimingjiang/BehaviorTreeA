@@ -1,10 +1,11 @@
 bt = {}
 
 bt.NONE     = -1
-bt.SUCCESS  = 0
-bt.FAILURE  = 1
-bt.RUNNING  = 2
-bt.ERROR    = 3
+bt.RUNNING  = 0
+bt.SUCCESS  = 1
+bt.FAILURE  = 2
+bt.ABORT    = 3
+bt.ERROR    = 4
 
 bt.TYPE_COMPOSITE   = 1
 bt.TYPE_DECORATOR   = 2
@@ -21,6 +22,11 @@ end
 local __load = function(module_path)
     local path = string.format( "%s.%s", bt.___base_path, module_path)
     return require(path)
+end
+
+local uuid = __load('behaviorA.uuid')
+bt.uuid = function()
+    return uuid.new()
 end
 
 bt.Blackboard       = __load('behaviorA.Blackboard')

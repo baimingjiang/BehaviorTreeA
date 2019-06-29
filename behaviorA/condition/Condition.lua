@@ -15,7 +15,7 @@ function Condition:ctor(conf)
 end
 
 function Condition:onProcess(ctx)
-    self._state = bt.SUCCESS
+
 end
 
 return Condition
