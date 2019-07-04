@@ -46,9 +46,12 @@
         ["Test3Action"] = require('app.actions.Test3Action'),
     }
     
-    local tree = bt.BehaviorTree.new(bt.BTContext.new())
-    tree:load(treeData, customNodesMap)
-    tree:start(function( ret )
+    local blackboard	= bt.Blackboard:new()
+    local tree 			= bt.BehaviorTree.new()
+	local context 		= bt.BTContext.new(tree, blackboard)
+    
+    tree:load(treeData, customNodesMap)  -- load and create tree struct
+    tree:start(context, function( ret )  -- start running, then callback when finish
         local result = ret
     end)
 
