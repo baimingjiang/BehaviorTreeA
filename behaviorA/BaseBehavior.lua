@@ -9,6 +9,7 @@
 local BaseBehavior = class('BaseBehavior')
 
 function BaseBehavior:ctor(conf)
+    self._context   = nil
 
     self._id        = conf.id
     self._desc      = conf.desc or ""
@@ -16,7 +17,12 @@ function BaseBehavior:ctor(conf)
     self._conf      = conf
 
     self._params    = conf.params or {}
+
     self._weight    = self._params.weight or 10
+    self._sendSignal = self._params.sendSignal
+
+    self._enterSignal    = self._params.enterSignal
+    self._exitSignal     = self._params.exitSignal
 
     self._type      = nil
 
@@ -28,7 +34,29 @@ function BaseBehavior:ctor(conf)
     self._isRunning = false
 end
 
+function BaseBehavior:setContext(ctx)
+    self._context = ctx
+end
+
+function BaseBehavior:getContext()
+    return self._context
+end
+
+function BaseBehavior:setSignal(signal)
+    signal = signal or self._sendSignal
+    if signal then
+        self._context:getBlackboard():set(signal.key, signal.value, self._context:getTree():getId())
+    end
+end
+
+function BaseBehavior:clearSignal(key)
+    self._context:getBlackboard():set(key, nil, self._context:getTree():getId())
+end
+
 function BaseBehavior:exec(ctx)
+
+    self:setContext(ctx)
+
     if self._state == bt.SUCCESS 
     or self._state == bt.FAILURE
     or self._state == bt.ERROR
@@ -94,11 +122,19 @@ function BaseBehavior:__enter(ctx)
 
     ctx:getTree():enterBehavior(self)
     self:onEnter(ctx)
+
+    if self._enterSignal then
+        self:setSignal(self._enterSignal)
+    end
 end
 
 function BaseBehavior:__exit(ctx)
     self._isRunning = false
     
+    if self._exitSignal then
+        self:setSignal(self._exitSignal)
+    end
+
     self:onExit(ctx)
     ctx:getTree():exitBehavior(self)
 

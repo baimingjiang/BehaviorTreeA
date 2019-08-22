@@ -21,6 +21,10 @@ function BehaviorTree:ctor()
     self._nodeCount = 0
 end
 
+function BehaviorTree:getId()
+    return self._id
+end
+
 function BehaviorTree:load(treeData, customNodeMap)
 
     local allNodes = {}
@@ -42,6 +46,42 @@ function BehaviorTree:load(treeData, customNodeMap)
     end
 
     self._root = allNodes[treeData.root]
+end
+
+function BehaviorTree:load2(treeData, customNodeMap)
+    self._root = self:__load2(treeData, customNodeMap)
+end
+
+function BehaviorTree:__load2(treeData, customNodeMap)
+    local id        = treeData.id
+    local title     = treeData.title
+    local topics    = treeData.topics
+    local params    = treeData.note
+    local desc      = treeData.label
+
+    local Cls = customNodeMap[title] or bt[title]
+
+    if not Cls then
+        Cls = bt["WaitAction"]
+        params = {time = 2}
+        desc = "执行跳过未实现节点：" .. title .. ", 等待时间2秒！"
+        print("==========================================================")
+        print("警告：未实现的节点：" .. title)
+        print("==========================================================")
+    end
+
+    -- assert(Cls, "error node:" .. title)
+    local ret = Cls.new({id = id, name = title, params = params, desc = desc})
+
+    if ret._type == bt.TYPE_COMPOSITE then
+        assert(#topics > 0)
+        for i,v in ipairs(topics) do
+            local child = self:__load2(v, customNodeMap)
+            ret:addChild(child)
+        end
+    end
+
+    return ret
 end
 
 function BehaviorTree:start(context, callback)
